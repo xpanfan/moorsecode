@@ -27,27 +27,38 @@
       cursor: pointer;
     }
 
+    .start-button {
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 5px;
+    }
+
     .options {
       display: flex;
-      flex-direction: column;
+      flex-direction: row;
       gap: 10px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-top: 20px;
     }
 
     #morse-display {
-      font-size: 2em;
+      font-size: 2.5em;
       font-weight: bold;
+      margin-top: 20px;
     }
 
-    @media (min-width: 600px) {
+    @media (max-width: 600px) {
       .options {
-        flex-direction: row;
+        flex-direction: column;
       }
     }
   </style>
 </head>
 <body>
   <h1>Morse Code Quiz</h1>
-  <button onclick="playMorse()">開始</button>
+  <button class="start-button" onclick="playMorse()">開始</button>
   <div class="options" id="options"></div>
   <p id="result"></p>
   <p>正確摩斯碼：<span id="morse-display"></span></p>
@@ -55,52 +66,20 @@
 
   <script>
     const morseCodeMap = {
-      A: ".-",
-      B: "-...",
-      C: "-.-.",
-      D: "-..",
-      E: ".",
-      F: "..-.",
-      G: "--.",
-      H: "....",
-      I: "..",
-      J: ".---",
-      K: "-.-",
-      L: ".-..",
-      M: "--",
-      N: "-.",
-      O: "---",
-      P: ".--.",
-      Q: "--.-",
-      R: ".-.",
-      S: "...",
-      T: "-",
-      U: "..-",
-      V: "...-",
-      W: ".--",
-      X: "-..-",
-      Y: "-.--",
-      Z: "--..",
-      0: "-----",
-      1: ".----",
-      2: "..---",
-      3: "...--",
-      4: "....-",
-      5: ".....",
-      6: "-....",
-      7: "--...",
-      8: "---..",
-      9: "----."
+      A: ".-", B: "-...", C: "-.-.", D: "-..", E: ".", F: "..-.", G: "--.",
+      H: "....", I: "..", J: ".---", K: "-.-", L: ".-..", M: "--", N: "-.",
+      O: "---", P: ".--.", Q: "--.-", R: ".-.", S: "...", T: "-", U: "..-",
+      V: "...-", W: ".--", X: "-..-", Y: "-.--", Z: "--..",
+      0: "-----", 1: ".----", 2: "..---", 3: "...--", 4: "....-",
+      5: ".....", 6: "-....", 7: "--...", 8: "---..", 9: "----."
     };
 
     let correctAnswer = '';
     let score = 0;
 
-    // 建立一個全域 AudioContext（避免 iOS 問題）
     const audioContext = new (window.AudioContext || window.webkitAudioContext)();
 
     function playMorse() {
-      // iOS需要在點擊時喚醒 AudioContext
       if (audioContext.state === 'suspended') {
         audioContext.resume();
       }
@@ -115,17 +94,14 @@
 
     function playMorseAudio(morse) {
       let time = audioContext.currentTime;
-
       for (let symbol of morse) {
         const osc = audioContext.createOscillator();
         osc.type = 'sine';
         osc.frequency.setValueAtTime(800, time);
-
         const duration = symbol === '.' ? 0.1 : 0.3;
         osc.connect(audioContext.destination);
         osc.start(time);
         osc.stop(time + duration);
-
         time += duration + 0.1;
       }
     }
@@ -133,17 +109,14 @@
     function showOptions(correct) {
       const options = [correct];
       const letters = Object.keys(morseCodeMap);
-
       while (options.length < 3) {
         const candidate = letters[Math.floor(Math.random() * letters.length)];
         if (!options.includes(candidate)) options.push(candidate);
       }
-
       options.sort(() => Math.random() - 0.5);
 
       const optionsDiv = document.getElementById('options');
       optionsDiv.innerHTML = '';
-
       options.forEach(opt => {
         const btn = document.createElement('button');
         btn.textContent = opt;
@@ -155,6 +128,7 @@
             document.getElementById('result').textContent = `錯了，正確答案是 ${correctAnswer}`;
           }
           document.getElementById('score').textContent = score;
+          document.getElementById('morse-display').textContent = '';
         };
         optionsDiv.appendChild(btn);
       });
