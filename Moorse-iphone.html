@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Morse Code Quiz</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+      background-color: #f2f2f2;
+    }
+
+    h1 {
+      margin-bottom: 20px;
+    }
+
+    button {
+      padding: 10px 20px;
+      margin: 10px;
+      font-size: 1.2em;
+      cursor: pointer;
+    }
+
+    .options {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    #morse-display {
+      font-size: 2em;
+      font-weight: bold;
+    }
+
+    @media (min-width: 600px) {
+      .options {
+        flex-direction: row;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>Morse Code Quiz</h1>
+  <button onclick="playMorse()">開始</button>
+  <div class="options" id="options"></div>
+  <p id="result"></p>
+  <p>正確摩斯碼：<span id="morse-display"></span></p>
+  <p>答對次數：<span id="score">0</span></p>
+
+  <script>
+    const morseCodeMap = {
+      A: ".-",
+      B: "-...",
+      C: "-.-.",
+      D: "-..",
+      E: ".",
+      F: "..-.",
+      G: "--.",
+      H: "....",
+      I: "..",
+      J: ".---",
+      K: "-.-",
+      L: ".-..",
+      M: "--",
+      N: "-.",
+      O: "---",
+      P: ".--.",
+      Q: "--.-",
+      R: ".-.",
+      S: "...",
+      T: "-",
+      U: "..-",
+      V: "...-",
+      W: ".--",
+      X: "-..-",
+      Y: "-.--",
+      Z: "--..",
+      0: "-----",
+      1: ".----",
+      2: "..---",
+      3: "...--",
+      4: "....-",
+      5: ".....",
+      6: "-....",
+      7: "--...",
+      8: "---..",
+      9: "----."
+    };
+
+    let correctAnswer = '';
+    let score = 0;
+
+    // 建立一個全域 AudioContext（避免 iOS 問題）
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+    function playMorse() {
+      // iOS需要在點擊時喚醒 AudioContext
+      if (audioContext.state === 'suspended') {
+        audioContext.resume();
+      }
+
+      const letters = Object.keys(morseCodeMap);
+      correctAnswer = letters[Math.floor(Math.random() * letters.length)];
+      const morse = morseCodeMap[correctAnswer];
+      document.getElementById('morse-display').textContent = morse;
+      playMorseAudio(morse);
+      showOptions(correctAnswer);
+    }
+
+    function playMorseAudio(morse) {
+      let time = audioContext.currentTime;
+
+      for (let symbol of morse) {
+        const osc = audioContext.createOscillator();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(800, time);
+
+        const duration = symbol === '.' ? 0.1 : 0.3;
+        osc.connect(audioContext.destination);
+        osc.start(time);
+        osc.stop(time + duration);
+
+        time += duration + 0.1;
+      }
+    }
+
+    function showOptions(correct) {
+      const options = [correct];
+      const letters = Object.keys(morseCodeMap);
+
+      while (options.length < 3) {
+        const candidate = letters[Math.floor(Math.random() * letters.length)];
+        if (!options.includes(candidate)) options.push(candidate);
+      }
+
+      options.sort(() => Math.random() - 0.5);
+
+      const optionsDiv = document.getElementById('options');
+      optionsDiv.innerHTML = '';
+
+      options.forEach(opt => {
+        const btn = document.createElement('button');
+        btn.textContent = opt;
+        btn.onclick = () => {
+          if (opt === correctAnswer) {
+            score++;
+            document.getElementById('result').textContent = '答對了！';
+          } else {
+            document.getElementById('result').textContent = `錯了，正確答案是 ${correctAnswer}`;
+          }
+          document.getElementById('score').textContent = score;
+        };
+        optionsDiv.appendChild(btn);
+      });
+    }
+  </script>
+</body>
+</html>
